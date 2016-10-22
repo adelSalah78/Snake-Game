@@ -1,0 +1,396 @@
+<html>
+<head></head>
+<body onKeyDown="moveSnakOnEvent(event)">
+<audio id="audio" src="http://www.soundjay.com/button/beep-07.wav" autostart="false" ></audio>
+<table id="wholeTable" style="width:500px;height:500px;border-collapse: collapse;">
+
+</table>
+<script type="text/javascript">
+var snakeSquares = [];
+var x1=25;
+var y1=25;
+var x2=25;
+var y2=30;
+var direction = 'R';
+var length = 15;
+var searchingPoint=[];
+var score = 0;
+init();
+moveSnake_init();
+generateRandomPoint();
+window.setTimeout(moveSnakAuto, 100);
+function init()
+{
+	var myTable = document.getElementById('wholeTable');
+	var rowsAndSquares = '';
+	for(i=0;i<50;i++)
+	{
+	    rowsAndSquares+='<tr>';
+	    for(j=0;j<50;j++)
+	    {
+		rowsAndSquares+='<td style="padding:0;background-color:black;width:10px;height:10px;" id="'+i+'_'+j+'"></td>';
+	    }
+	    rowsAndSquares+='</tr>';
+	}
+	myTable.innerHTML = rowsAndSquares;
+}
+
+function moveSnake_init()
+{
+	snakeSquares = [];
+	if(direction == 'R')
+	{
+	    var index=0;
+	    for(;index<length;index++)
+	    {
+		snakeSquares.push([x1,y1+index]);
+		document.getElementById(x1+'_'+(y1+index)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+	    }
+	}
+}
+
+function generateRandomPoint()
+{
+	var horizontal = Math.floor((Math.random() * 49) + 0);
+	var vertical = Math.floor((Math.random() * 49) + 0);
+	searchingPoint = [];
+	searchingPoint = [horizontal,vertical];
+	if(!isPointOnSnakeBody_NewPoint(searchingPoint))
+	{
+		document.getElementById(searchingPoint[0]+'_'+searchingPoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+	}
+	else
+	{
+		generateRandomPoint();
+	}
+}
+
+function isPointsEqual(firstPoint,secondPoint)
+{
+	//console.log('isPointsEqual step 1');
+	if(firstPoint[0] == secondPoint[0] && firstPoint[1] == secondPoint[1])
+	{
+		//console.log('isPointsEqual step 2');
+		score++;
+		document.getElementById('audio').play();
+		return true;
+	}
+	else
+	{
+		//console.log('isPointsEqual step 3');
+		return false;
+	}
+}
+
+function calculateHighScore()
+{
+	var x = document.cookie;
+	var scoreIndex = x.indexOf('asmHighScore');
+	var currentHighScore = 0;
+	var result = '';
+	if(scoreIndex != -1)
+	{
+		currentHighScore = x.substring(scoreIndex+12);
+		currentHighScore = currentHighScore.split(';')[0].split('=')[1];
+	}
+	var d = new Date();
+	d.setTime(d.getTime() + (356*24*60*60*1000));
+	var expires = "expires="+ d.toUTCString();
+	var highScore = score*10;
+	if(highScore > currentHighScore)
+	{
+		document.cookie = 'asmHighScore='+highScore+';'+expires;
+		result = 'Your score is: '+highScore+' and the high score is: '+highScore;
+	}
+	else
+	{
+		document.cookie = 'asmHighScore='+currentHighScore+';'+expires;
+		result = 'Your score is: '+highScore+' and the high score is: '+currentHighScore;
+	}
+	
+	return result;
+}
+
+function moveSnakAuto()
+{
+	firstSnakePoint = snakeSquares[0];
+	//alert(firstSnakePoint);
+	document.getElementById(firstSnakePoint[0]+'_'+firstSnakePoint[1]).style = 'padding:0;background-color:black;width:10px;height:10px;';
+	snakeSquares.shift();
+	lastSnakePoint = snakeSquares[snakeSquares.length-1];
+	
+	if(direction == 'L')
+	{
+		newSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]-1)];
+		if(lastSnakePoint[1] <=0 || isPointOnSnakeBody(newSnakePoint))
+		{
+			alert('Game is Over !!!\r\n'+calculateHighScore());
+			window.location.href = window.location.href;
+			return;
+		}
+		snakeSquares.push(newSnakePoint);
+		document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]-1)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]-2)];
+			if(addedSnakePoint[1] <0 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]-2)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(direction == 'U')
+	{
+		newSnakePoint = [(lastSnakePoint[0]-1),lastSnakePoint[1]];
+		if(lastSnakePoint[0] <=0 || isPointOnSnakeBody(newSnakePoint))
+		{
+			alert('Game is Over !!!\r\n'+calculateHighScore());
+			window.location.href = window.location.href;
+			return;
+		}
+		snakeSquares.push(newSnakePoint);
+		document.getElementById((lastSnakePoint[0]-1)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [(lastSnakePoint[0]-2),lastSnakePoint[1]];
+			if(addedSnakePoint[0] <0 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById((lastSnakePoint[0]-2)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(direction == 'R')
+	{
+		newSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]+1)];
+		if(lastSnakePoint[1] >=49 || isPointOnSnakeBody(newSnakePoint))
+		{
+			alert('Game is Over !!!\r\n'+calculateHighScore());
+			window.location.href = window.location.href;
+			return;
+		}
+		snakeSquares.push(newSnakePoint);
+		document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]+1)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]+2)];
+			if(addedSnakePoint[1] >49 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]+2)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(direction == 'D')
+	{
+		newSnakePoint = [(lastSnakePoint[0]+1),lastSnakePoint[1]];
+		if(lastSnakePoint[0] >=49 || isPointOnSnakeBody(newSnakePoint))
+		{
+			alert('Game is Over !!!\r\n'+calculateHighScore());
+			window.location.href = window.location.href;
+			return;
+		}
+		snakeSquares.push(newSnakePoint);
+		document.getElementById((lastSnakePoint[0]+1)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [(lastSnakePoint[0]+2),lastSnakePoint[1]];
+			if(addedSnakePoint[0] >49 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById((lastSnakePoint[0]+2)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+window.setTimeout(moveSnakAuto, 100);
+}
+
+function isPointOnSnakeBody(point)
+{
+	var exist = false;
+	for(var pointIndex = 0 ; pointIndex < snakeSquares.length; pointIndex++)
+	{	
+		if(snakeSquares[pointIndex][0] == point[0] && snakeSquares[pointIndex][1] == point[1])
+		{
+			exist = true;
+			break;
+		}
+	}
+	return exist;
+}
+
+function isPointOnSnakeBody_NewPoint(point)
+{
+	var exist = false;
+	for(var pointIndex = 0 ; pointIndex < snakeSquares.length; pointIndex++)
+	{	
+		if(snakeSquares[pointIndex][0] == point[0] && snakeSquares[pointIndex][1] == point[1])
+		{
+			exist = true;
+			break;
+		}
+	}
+	return exist;
+}
+
+function moveSnakOnEvent(e)
+{
+	var event = window.event ? window.event : e;
+	if(event.keyCode!=37 && event.keyCode!=38 && event.keyCode!=39 && event.keyCode!=40)
+	{
+		return;
+	}
+	if((event.keyCode==37 && direction == 'R') || (event.keyCode==39 && direction == 'L') || (event.keyCode==40 && direction == 'U') || (event.keyCode==38 && direction == 'D'))
+	{
+		return;
+	}
+	
+	firstSnakePoint = snakeSquares[0];
+	//alert(firstSnakePoint);
+	document.getElementById(firstSnakePoint[0]+'_'+firstSnakePoint[1]).style = 'padding:0;background-color:black;width:10px;height:10px;';
+	snakeSquares.shift();
+	lastSnakePoint = snakeSquares[snakeSquares.length-1];
+	
+	if(event.keyCode==37)
+	{
+		direction = 'L';
+		newSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]-1)];
+		snakeSquares.push(newSnakePoint);
+		document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]-1)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]-2)];
+			if(addedSnakePoint[1] <0 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]-2)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(event.keyCode==38)
+	{
+		direction = 'U';
+		newSnakePoint = [(lastSnakePoint[0]-1),lastSnakePoint[1]];
+		snakeSquares.push(newSnakePoint);
+		document.getElementById((lastSnakePoint[0]-1)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+		
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [(lastSnakePoint[0]-2),lastSnakePoint[1]];
+			if(addedSnakePoint[0] <0 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById((lastSnakePoint[0]-2)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(event.keyCode==39)
+	{
+		direction = 'R';
+		newSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]+1)];
+		snakeSquares.push(newSnakePoint);
+		document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]+1)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [lastSnakePoint[0],(lastSnakePoint[1]+2)];
+			if(addedSnakePoint[1] >49 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById(lastSnakePoint[0]+'_'+(lastSnakePoint[1]+2)).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+
+	if(event.keyCode==40)
+	{
+		direction = 'D';
+		newSnakePoint = [(lastSnakePoint[0]+1),lastSnakePoint[1]];
+		snakeSquares.push(newSnakePoint);
+		document.getElementById((lastSnakePoint[0]+1)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+
+		if(isPointsEqual(newSnakePoint,searchingPoint))
+		{
+			//console.log('Step 1');
+			addedSnakePoint = [(lastSnakePoint[0]+2),lastSnakePoint[1]];
+			if(addedSnakePoint[0] >49 || isPointOnSnakeBody(addedSnakePoint))
+			{
+				alert('Game is Over !!!\r\n'+calculateHighScore());
+				window.location.href = window.location.href;
+				return;
+			}
+			//console.log('Step 2');
+			document.getElementById((lastSnakePoint[0]+2)+'_'+lastSnakePoint[1]).style = 'padding:0;background-color:white;width:10px;height:10px;';
+			//console.log('Step 3');
+			snakeSquares.push(addedSnakePoint);
+			//console.log('Step 4');
+			generateRandomPoint();
+		}
+	}
+}
+</script>
+</body>
+</html>
